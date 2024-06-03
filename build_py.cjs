@@ -1,38 +1,57 @@
-const { execSync } = require('child_process');
-const fs = require('fs');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
-const sourceDir = 'src-python';
+const sourceDir = 'src-python'; 
 const hashFile = 'src-tauri/bin/.hash';
 
-const calculateHash = () => {
-    const hash = crypto.createHash('sha256');
-    const files = fs.readdirSync(sourceDir);
-    files.forEach(file => {
-        const content = fs.readFileSync(`${sourceDir}/${file}`);
-        hash.update(content);
-    });
-    return hash.digest('hex');
-};
+function calculateHash(directory) {
+    let hash = crypto.createHash('sha256');
 
-if (fs.existsSync(hashFile)) {
-    const previousHash = fs.readFileSync(hashFile, 'utf8').trim();
-    const currentHash = calculateHash();
-    
-    if (previousHash === currentHash) {
-        console.log('No changes in source code. Skipping PyInstaller.');
-        process.exit(0);
+    function hashFile(filePath) {
+        const fileBuffer = fs.readFileSync(filePath);
+        hash.update(fileBuffer);
     }
+
+    function walkDir(dir) {
+        fs.readdirSync(dir).forEach(file => {
+            const filePath = path.join(dir, file);
+            if (fs.statSync(filePath).isDirectory()) {
+                walkDir(filePath);
+            } else if (filePath.endsWith('.py')) {
+                hashFile(filePath);
+            }
+        });
+    }
+
+    walkDir(directory);
+
+    return hash.digest('hex');
 }
 
-console.log('Building Python executable... Please wait...');
+function readLastHash(filePath) {
+    if (fs.existsSync(filePath)) {
+        return fs.readFileSync(filePath, 'utf8');
+    }
+    return null;
+}
+
+function writeCurrentHash(filePath, hash) {
+    fs.writeFileSync(filePath, hash, 'utf8');
+}
+
 try {
-    const output = execSync(`pyinstaller -F ${sourceDir}/main.py --distpath src-tauri/bin --clean -n python-x86_64-pc-windows-msvc`, { encoding: 'utf-8' });
-    console.log(output);
-    console.log('Python executable built successfully.');
-} catch (error) {
-    console.error('Error building Python executable:', error.stderr ? error.stderr.toString() : error.toString());
-    process.exit(1);
-}
+    const currentHash = calculateHash(sourceDir);
+    const lastHash = readLastHash(hashFile);
 
-fs.writeFileSync(hashFile, calculateHash());
+    if (currentHash !== lastHash) {
+        console.log('Source files changed. Rebuilding... Please wait...');
+        const { execSync } = require('child_process');
+        execSync(`pyinstaller -F ${path.join(sourceDir, 'main.py')} --distpath src-tauri/bin --clean -n python-x86_64-pc-windows-msvc`, { stdio: 'inherit' });
+        writeCurrentHash(hashFile, currentHash);
+    } else {
+        console.log('Source files unchanged. Skipping build...');
+    }
+} catch (error) {
+    console.error('An error occurred:', error);
+}
