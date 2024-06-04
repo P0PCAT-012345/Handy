@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "build_py": "node build_py.cjs",
+    "dev_py": "python src-python/main.py",
     "run_py": "src-tauri/bin/python-x86_64-pc-windows-msvc.exe",
-    "dev": "concurrently \"yarn run_py\" \"vite\"",
+    "dev": "concurrently \"yarn dev_py\" \"vite\"",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri"

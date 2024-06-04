@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Hands, HAND_CONNECTIONS } from "@mediapipe/hands";
+import { Hands, HAND_CONNECTIONS, Landmark } from "@mediapipe/hands";
 import { drawConnectors, drawLandmarks } from "@mediapipe/drawing_utils";
 import { Camera } from "@mediapipe/camera_utils";
 import { invoke } from "@tauri-apps/api";
@@ -10,9 +10,11 @@ type MediaProps = {
     width: number;
     height: number;
   };
+  setLandmarks: React.Dispatch<React.SetStateAction<any[]>>;
+  landmarks: Array<Array<{x: number, y: number, z: number}>>;
 };
 
-const WebCamera: React.FC<MediaProps> = ({ video }) => {
+const WebCamera: React.FC<MediaProps> = ({ video, setLandmarks, landmarks }) => {
   const constraints = {
     audio: false,
     video: {
@@ -25,7 +27,6 @@ const WebCamera: React.FC<MediaProps> = ({ video }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [cameraState, setCameraState] = useState(false);
   const handsRef = useRef<Hands | null>(null);
-  const [landmarks, setLandmarks] = useState<any[]>([]);
 
   useEffect(() => {
     const setupHands = async () => {
