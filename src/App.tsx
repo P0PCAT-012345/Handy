@@ -6,6 +6,7 @@ import WebCamera from './components/Webcam';
 
 function App() {
   const [response, setResponse] = useState('');
+  const [landmarks, setLandmarks] = useState(new Array);
 
   useEffect(() => {
       client.onopen = () => {
@@ -27,19 +28,18 @@ function App() {
       };
     }, []);
 
-    const handleSendMessage = () => {
-        const message = 'Hello, Python!';
-        console.log(performance.now())
-        console.log(`Sending message to server: ${message}`);
-        client.send(message);
-    };
+    
+    const record = () => {
+      // const arrayedLandmarks
+      client.send(JSON.stringify({"function": "search", "kwargs": {'landmarks': landmarks}}))
+    }
 
     
   return (
     <>
     <div className="flex flex-col">
-      <WebCamera video={{width: 600, height:400}}/>
-      <button className="bg-blue-500 text-white font-bold h-[5vh] rounded hover:bg-blue-700" onClick={handleSendMessage}>
+      <WebCamera video={{width: 600, height:400}} setLandmarks={setLandmarks} landmarks={landmarks}/>
+      <button className="bg-blue-500 text-white font-bold h-[5vh] rounded hover:bg-blue-700" onClick={record}>
         Record
       </button>
       
