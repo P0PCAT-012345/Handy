@@ -3,6 +3,7 @@ import { Hands, HAND_CONNECTIONS } from "@mediapipe/hands";
 import { drawConnectors, drawLandmarks } from "@mediapipe/drawing_utils";
 import { Camera } from "@mediapipe/camera_utils";
 import { invoke } from "@tauri-apps/api";
+import ButtonComponent from './ButtonComponent';
 
 type MediaProps = {
   video: {
@@ -24,9 +25,9 @@ const WebCamera: React.FC<MediaProps> = ({ video }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [cameraState, setCameraState] = useState(false);
   const handsRef = useRef<Hands | null>(null);
-  const [landmarks, setLandmarks] = useState(new Array);
+  const [landmarks, setLandmarks] = useState<any[]>([]);
 
-    useEffect(() => {
+  useEffect(() => {
     const setupHands = async () => {
       try {
         const hands = new Hands({
@@ -47,25 +48,24 @@ const WebCamera: React.FC<MediaProps> = ({ video }) => {
         console.error("Error setting up hands:", error);
       }
     };
-    if (canvasRef){
-        setupHands();
+    if (canvasRef) {
+      setupHands();
     }
 
-        }, [videoRef]);
+  }, [videoRef]);
 
-    useEffect(() => {
-        if (landmarks.length > 0) {
-          const formattedLandmarks = landmarks.map((handLandmarks) =>
-            handLandmarks.map((landmark: {x: number, y: number, z: number}) => ({
-              x: landmark.x,
-              y: landmark.y,
-              z: landmark.z,
-            }))
-          );
-          invoke('update_landmark', { landmarks: formattedLandmarks }).catch((e) => console.error(e));
-        }
-      }, [landmarks]);
-
+  useEffect(() => {
+    if (landmarks.length > 0) {
+      const formattedLandmarks = landmarks.map((handLandmarks) =>
+        handLandmarks.map((landmark: { x: number, y: number, z: number }) => ({
+          x: landmark.x,
+          y: landmark.y,
+          z: landmark.z,
+        }))
+      );
+      invoke('update_landmark', { landmarks: formattedLandmarks }).catch((e) => console.error(e));
+    }
+  }, [landmarks]);
 
   const onResults = (results: any) => {
     try {
@@ -75,6 +75,8 @@ const WebCamera: React.FC<MediaProps> = ({ video }) => {
       setLandmarks(results.multiHandLandmarks);
       canvasCtx.save();
       canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      canvasCtx.translate(canvasRef.current.width, 0);
+      canvasCtx.scale(-1, 1);
       canvasCtx.drawImage(
         results.image,
         0,
@@ -86,9 +88,13 @@ const WebCamera: React.FC<MediaProps> = ({ video }) => {
         for (const landmarks of results.multiHandLandmarks) {
           drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {
             color: '#00FF00',
-            lineWidth: 5,
+            lineWidth: 2, 
           });
-          drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', lineWidth: 2 });
+          drawLandmarks(canvasCtx, landmarks, {
+            color: '#FF0000',
+            lineWidth: 1, 
+            radius: 2, 
+          });
         }
       }
       canvasCtx.restore();
@@ -104,11 +110,10 @@ const WebCamera: React.FC<MediaProps> = ({ video }) => {
         const camera = new Camera(videoRef.current, {
           onFrame: async () => {
             if (handsRef.current && videoRef.current) {
-              try{
+              try {
                 await handsRef.current.send({ image: videoRef.current });
-              }
-              catch (error){
-                console.log("Loading ", error)
+              } catch (error) {
+                console.log("Loading ", error);
               }
             }
           },
@@ -139,25 +144,27 @@ const WebCamera: React.FC<MediaProps> = ({ video }) => {
   }, [cameraState]);
 
   return (
-    <>
-      <video
-        ref={videoRef}
-        id="local-video"
-        autoPlay
-        playsInline
-        muted
-        width={video.width}
-        height={video.height}
-        style={{ transform: 'scaleX(-1)', display: 'none' }}
-      />
-      <canvas
-        ref={canvasRef}
-        width={video.width}
-        height={video.height}
-        style={{ transform: 'scaleX(-1)' }}
-      />
-      <br />
-    </>
+    <div className="flex flex-col h-screen w-screen bg-white overflow-hidden">
+      <div className="flex-1 w-full flex justify-center items-center relative">
+        <video
+          ref={videoRef}
+          id="local-video"
+          autoPlay
+          playsInline
+          muted
+          width={video.width}
+          height={video.height}
+          className="hidden"
+        />
+        <canvas
+          ref={canvasRef}
+          width={video.width}
+          height={video.height}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <ButtonComponent landmarks={landmarks} />
+    </div>
   );
 };
 
