@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Hands, HAND_CONNECTIONS, Landmark } from "@mediapipe/hands";
+import { Hands, HAND_CONNECTIONS } from "@mediapipe/hands";
 import { drawConnectors, drawLandmarks } from "@mediapipe/drawing_utils";
 import { Camera } from "@mediapipe/camera_utils";
 import { invoke } from "@tauri-apps/api";
