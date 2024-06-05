@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
+import { client } from "../websocketService/websocketService";
 
-const ButtonComponent = ({ landmarks }: { landmarks: any[] }) => {
+const RecordButtonComponent = ({ landmarks }: { landmarks: any[] }) => {
   const [recording, setRecording] = useState(false);
 
   useEffect(() => {
@@ -30,6 +31,7 @@ const ButtonComponent = ({ landmarks }: { landmarks: any[] }) => {
             invoke<string>("save_recording", { filename: name })
               .then((filePath) => {
                 console.log("Recording saved at:", filePath);
+                client.send(JSON.stringify({"function": "add", "args": [filePath, name]}))
               })
               .catch((err) => {
                 console.error("Failed to save recording", err);
@@ -58,4 +60,4 @@ return (
 );
 };
 
-export default ButtonComponent;
+export default RecordButtonComponent;

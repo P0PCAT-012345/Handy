@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {client} from './websocketService/websocketService';
 import WebCamera from './components/Webcam';
 
@@ -13,19 +13,19 @@ function App() {
   }
 
 
-    
-    const record = () => {
-      client.send(JSON.stringify({"function": "search", "kwargs": {'landmarks': landmarks}}))
-    }
+  
+  // const record = () => {
+  //   client.send(JSON.stringify({"function": "search", "kwargs": {'landmarks': landmarks}}))
+  // }
 
     
   return (
     <>
     {serverLoaded && <div className="flex flex-col">
       <WebCamera video={{width: 600, height:400}} setLandmarks={setLandmarks} landmarks={landmarks}/>
-      <button className="bg-blue-500 text-white font-bold h-[5vh] rounded hover:bg-blue-700" onClick={record}>
+      {/* <button className="bg-blue-500 text-white font-bold h-[5vh] rounded hover:bg-blue-700" onClick={record}>
         Record
-      </button>
+      </button> */}
       
     </div>}
       

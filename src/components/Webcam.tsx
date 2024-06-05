@@ -3,7 +3,7 @@ import { Hands, HAND_CONNECTIONS } from "@mediapipe/hands";
 import { drawConnectors, drawLandmarks } from "@mediapipe/drawing_utils";
 import { Camera } from "@mediapipe/camera_utils";
 import { invoke } from "@tauri-apps/api";
-import ButtonComponent from './ButtonComponent';
+import RecordButtonComponent from './RecordButton';
 
 type MediaProps = {
   video: {
@@ -164,7 +164,7 @@ const WebCamera: React.FC<MediaProps> = ({ video, setLandmarks, landmarks }) => 
           className="w-full h-full object-cover"
         />
       </div>
-      <ButtonComponent landmarks={landmarks} />
+      <RecordButtonComponent landmarks={landmarks} />
     </div>
   );
 };

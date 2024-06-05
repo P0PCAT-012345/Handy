@@ -1,5 +1,6 @@
 import faiss
 import numpy as np
+import json
 
 class vectorDatabase():
     def __init__(self, dim: int):
@@ -64,6 +65,10 @@ def add_vector(landmarks, names):
         return False
 
 
-
+def add_filepath(landmark_filepath, name):
+    with open(landmark_filepath[1:], 'r') as file:
+        data = json.load(file) 
+    array = np.array(data)
+    add_vector([array], [name])
 
 

@@ -1,9 +1,9 @@
 import asyncio
 import websockets
 import json
-from vectorDatabase import search, add_vector
+from vectorDatabase import search, add_vector, add_filepath
 
-functions = {'search': search, 'add_vector': add_vector}
+functions = {'search': search, 'add_vector': add_vector, 'add': add_filepath}
 
 async def handler(websocket, path):
     async for message in websocket:
@@ -18,11 +18,13 @@ def process_message(message):
             
             if func_name in functions:
                 func = functions[func_name]
+                kwargs = {}
+                args = []
                 if "kwargs" in data:
-                    kwarg = data["kwargs"]
-                    result = func(**kwarg)
-                else:
-                    result = func()
+                    kwargs = data["kwargs"]
+                if 'args' in data:
+                    args = data['args']
+                result = func(*args, **kwargs)
                 return json.dumps({"result": result})
             else:
                 return json.dumps({"error": "Function not found"})

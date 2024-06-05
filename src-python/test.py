@@ -1,9 +1,10 @@
 import json
-from vectorDatabase import search, add_vector
+from vectorDatabase import search, add_vector, add_filepath
 
-functions = {'search': search, 'add_vector': add_vector}
+functions = {'search': search, 'add_vector': add_vector, 'add': add_filepath}
 input=[[{"x": 0.9631649255752563, "y": 0.8921899199485779, "z": 5.183363782634842e-07}, {"x": 0.8706760406494141, "y": 0.9068775177001953, "z": -0.02952069230377674}, {"x": 0.7818514704704285, "y": 0.853258490562439, "z": -0.027038102969527245}, {"x": 0.726544201374054, "y": 0.7807121872901917, "z": -0.02267513796687126}, {"x": 0.6859288215637207, "y": 0.7139922380447388, "z": -0.014010653831064701}, {"x": 0.7751250267028809, "y": 0.7284798622131348, "z": 0.0432855449616909}, {"x": 0.7292441129684448, "y": 0.6578425168991089, "z": 0.05063499137759209}, {"x": 0.7089962959289551, "y": 0.6137833595275879, "z": 0.04530110955238342}, {"x": 0.6922354102134705, "y": 0.5721984505653381, "z": 0.0389840267598629}, {"x": 0.8086718320846558, "y": 0.6794722676277161, "z": 0.05132323503494263}, {"x": 0.76131671667099, "y": 0.5957536697387695, "z": 0.06857846677303314}, {"x": 0.7385215759277344, "y": 0.5412903428077698, "z": 0.06769357621669769}, {"x": 0.7191367745399475, "y": 0.4949053227901459, "z": 0.06415405124425888}, {"x": 0.8461366295814514, "y": 0.6557129621505737, "z": 0.05019255355000496}, {"x": 0.8044344186782837, "y": 0.5773842930793762, "z": 0.059975434094667435}, {"x": 0.7847809791564941, "y": 0.5312716960906982, "z": 0.061843518167734146}, {"x": 0.7666526436805725, "y": 0.4903826415538788, "z": 0.060270387679338455}, {"x": 0.8919321298599243, "y": 0.6374606490135193, "z": 0.04360508546233177}, {"x": 0.8614277243614197, "y": 0.5792781114578247, "z": 0.049774687737226486}, {"x": 0.8465942740440369, "y": 0.5478969812393188, "z": 0.055354371666908264}, {"x": 0.8321810960769653, "y": 0.5158134698867798, "z": 0.057910703122615814}]]
 
+    
 def process_message(message):
     try:
         data = json.loads(message)
@@ -12,13 +13,13 @@ def process_message(message):
             
             if func_name in functions:
                 func = functions[func_name]
+                kwargs = {}
+                args = []
                 if "kwargs" in data:
-                    kwarg = data["kwargs"]
-                    result = func(**kwarg)
-                    print(result)
-                else:
-                    result = func()
-                    
+                    kwargs = data["kwargs"]
+                if 'args' in data:
+                    args = data['args']
+                result = func(*args, **kwargs)
                 return json.dumps({"result": result})
             else:
                 return json.dumps({"error": "Function not found"})
@@ -26,6 +27,7 @@ def process_message(message):
             return json.dumps({"error": "Invalid message format"})
     except json.JSONDecodeError:
         return f"Received: {message}, Hello World!"
-    
-print(process_message(json.dumps({'function': 'add_vector', 'kwargs': {'landmarks': input, 'names': ["Test"]}})))
-print(process_message(json.dumps({'function': 'search', 'kwargs': {'landmarks': input}})))
+
+
+# print(process_message(json.dumps({'function': 'add_vector', 'args': [input], 'kwargs': {'names': ["Test"]}})))
+print(process_message(json.dumps({'function': 'add', 'args':['../database/poijo.json', 'poijo']})))

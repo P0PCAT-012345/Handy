@@ -76,13 +76,11 @@ fn on_recording_clicked(state: State<Mutex<AppState>>) -> String {
     if app_state.recording {
         // Stop recording
         app_state.recording = false;
-        println!("Recording stopped. Recorded landmarks: {:?}", app_state.recorded_landmarks);
         format!("Recording stopped. Recorded {} landmarks.", app_state.recorded_landmarks.len())
     } else {
         // Start recording
         app_state.recording = true;
         app_state.recorded_landmarks.clear();
-        println!("Recording started.");
         "Recording started.".to_string()
     }
 }
@@ -90,9 +88,7 @@ fn on_recording_clicked(state: State<Mutex<AppState>>) -> String {
 #[command]
 fn save_recording(state: State<Mutex<AppState>>, filename: String) -> Result<String, String> {
     let app_state = state.lock().unwrap();
-    println!("Recorded landmarks to save: {:?}", app_state.recorded_landmarks);
-
-    let folder_name = "Handy Database";
+    let folder_name = "../database";
     let file_path = format!("{}/{}.json", folder_name, filename);
     if let Err(e) = fs::create_dir_all(folder_name) {
         return Err(format!("Failed to create directory: {}", e));
@@ -101,13 +97,10 @@ fn save_recording(state: State<Mutex<AppState>>, filename: String) -> Result<Str
         Ok(path) => println!("Current working directory: {}", path.display()),
         Err(e) => println!("Failed to get current working directory: {}", e),
     }
-    println!("Recording: {}", app_state.recorded_landmarks.len());
     let num_landmarks = AppState::convert_landmarks(app_state.recorded_landmarks.clone());
-    println!("Converted landmarks: {}", num_landmarks.len());
     let encoded = serde_json::to_string(&num_landmarks).map_err(|e| e.to_string())?;
     let mut file = File::create(&file_path).map_err(|e| e.to_string())?;
     file.write_all(encoded.as_bytes()).map_err(|e| e.to_string())?;
-    println!("Recording saved at: {}", file_path);
 
     Ok(file_path)
 }
